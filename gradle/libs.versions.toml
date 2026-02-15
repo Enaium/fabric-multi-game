@@ -1,0 +1,11 @@
+[versions]
+kotlin = "2.3.10"
+publishing = "2.0.0"
+jackson = "3.0.4"
+
+[libraries]
+jackson = { module = "tools.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+gradle-publish = { id = "com.gradle.plugin-publish", version.ref = "publishing" }
