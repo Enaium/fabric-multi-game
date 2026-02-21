@@ -2,9 +2,11 @@
 kotlin = "2.3.10"
 publishing = "2.0.0"
 jackson = "3.0.4"
+groovy-all = "5.0.4"
 
 [libraries]
 jackson = { module = "tools.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
+groovy-all = { module = "org.apache.groovy:groovy-all", version.ref = "groovy-all" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

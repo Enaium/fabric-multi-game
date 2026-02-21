@@ -2,23 +2,29 @@ plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.gradle.publish)
     `java-gradle-plugin`
-    `maven-publish`
 }
 
 group = "cn.enaium"
-version = "${providers.gradleProperty("version").get()}"
+version = providers.gradleProperty("version").get()
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
+    compileOnly(project("dynamic"))
     implementation(libs.jackson)
     testImplementation(kotlin("test"))
 }
 
+afterEvaluate {
+    tasks.processResources {
+        from(rootProject.project("dynamic").sourceSets.main.get().output)
+    }
+}
+
 kotlin {
-    jvmToolchain(8)
+    jvmToolchain(17)
 }
 
 tasks.test {
@@ -39,14 +45,19 @@ gradlePlugin {
     }
 }
 
-publishing {
-    publications {
-        create<MavenPublication>("maven") {
-            groupId = project.group.toString()
-            artifactId = project.name
-            version = project.version.toString()
+allprojects {
+    apply(plugin = "java")
+    apply(plugin = "maven-publish")
 
-            from(components["java"])
+    publishing {
+        publications {
+            create<MavenPublication>("maven") {
+                groupId = project.group.toString()
+                artifactId = project.name
+                version = project.version.toString()
+
+                from(components["java"])
+            }
         }
     }
 }

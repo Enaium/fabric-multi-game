@@ -42,10 +42,11 @@ class FabricMultiGamePlugin : Plugin<Project> {
                 subproject.repositories.maven { it.setUrl("https://repo.legacyfabric.net/repository/legacyfabric/") }
                 val minecraftVersion = subproject.properties["minecraft.version"].toString()
                 val loaderVersion = subproject.properties["fabric.loader.version"].toString()
-                val yarnVersion = subproject.properties["fabric.yarn.version"].toString()
                 val apiVersion = subproject.properties["fabric.api.version"].toString()
                 val javaVersion = subproject.properties["java.version"].toString()
                 val modern = VersionNumber.parse(minecraftVersion) >= VersionNumber.parse("1.14")
+                val disableObfuscation =
+                    subproject.properties.getOrDefault("fabric.loom.disableObfuscation", false).toString().toBoolean()
                 subproject.plugins.apply("java")
                 subproject.plugins.apply("fabric-loom")
                 if (!modern) {
@@ -54,14 +55,24 @@ class FabricMultiGamePlugin : Plugin<Project> {
 
                 hasClass("org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension")?.also {
                     subproject.plugins.apply("org.jetbrains.kotlin.jvm")
-                    it.getMethod("jvmToolchain", Int::class.java)
-                        .invoke(subproject.extensions.getByName("kotlin"), javaVersion.toInt())
+                    KotlinExtension.jvmToolchain(subproject.extensions.getByName("kotlin"), javaVersion.toInt())
                 }
 
                 subproject.dependencies.minecraft("com.mojang:minecraft:$minecraftVersion")
-                subproject.dependencies.modImplementation("net.fabricmc:fabric-loader:$loaderVersion")
-                subproject.dependencies.mappings("${if (modern) "net.fabricmc:yarn" else "net.legacyfabric:yarn"}:$yarnVersion:v2")
-                subproject.dependencies.modImplementation("${if (modern) "net.fabricmc.fabric-api:fabric-api" else "net.legacyfabric.legacy-fabric-api:legacy-fabric-api"}:$apiVersion")
+                if (disableObfuscation) {
+                    subproject.dependencies.implementation("net.fabricmc:fabric-loader:$loaderVersion")
+                } else {
+                    subproject.dependencies.modImplementation("net.fabricmc:fabric-loader:$loaderVersion")
+                }
+
+                subproject.properties.getOrDefault("fabric.yarn.version", null)?.also {
+                    subproject.dependencies.mappings("${if (modern) "net.fabricmc:yarn" else "net.legacyfabric:yarn"}:$it:v2")
+                }
+                if (disableObfuscation) {
+                    subproject.dependencies.implementation("${if (modern) "net.fabricmc.fabric-api:fabric-api" else "net.legacyfabric.legacy-fabric-api:legacy-fabric-api"}:$apiVersion")
+                } else {
+                    subproject.dependencies.modImplementation("${if (modern) "net.fabricmc.fabric-api:fabric-api" else "net.legacyfabric.legacy-fabric-api:legacy-fabric-api"}:$apiVersion")
+                }
                 val core = extension.common.get()
                 core.tasks.named("jar", Jar::class.java) {
                     it.exclude("fabric.mod.json")
