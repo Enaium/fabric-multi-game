@@ -36,10 +36,26 @@ import tools.jackson.module.kotlin.readValue
 class FabricMultiGamePlugin : Plugin<Project> {
     override fun apply(project: Project) {
         val extension = project.extensions.create("fmg", FabricMultiGameExtension::class.java)
+        project.subprojects { subproject ->
+            subproject.repositories.maven { it.setUrl("https://maven.fabricmc.net/") }
+            subproject.repositories.maven { it.setUrl("https://repo.legacyfabric.net/repository/legacyfabric/") }
+            val minecraftVersion = subproject.properties["minecraft.version"].toString()
+            val javaVersion = subproject.properties["java.version"].toString()
+            val modern = VersionNumber.parse(minecraftVersion) >= VersionNumber.parse("1.14")
+            subproject.plugins.apply("java")
+            subproject.plugins.apply("fabric-loom")
+            if (!modern) {
+                subproject.plugins.apply("legacy-looming")
+            }
+
+            hasClass("org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension")?.also {
+                subproject.plugins.apply("org.jetbrains.kotlin.jvm")
+                KotlinExtension.jvmToolchain(subproject.extensions.getByName("kotlin"), javaVersion.toInt())
+            }
+            subproject.version = "${minecraftVersion}-${project.rootProject.version}"
+        }
         project.afterEvaluate { afterEvaluate ->
             afterEvaluate.subprojects { subproject ->
-                subproject.repositories.maven { it.setUrl("https://maven.fabricmc.net/") }
-                subproject.repositories.maven { it.setUrl("https://repo.legacyfabric.net/repository/legacyfabric/") }
                 val minecraftVersion = subproject.properties["minecraft.version"].toString()
                 val loaderVersion = subproject.properties["fabric.loader.version"].toString()
                 val apiVersion = subproject.properties["fabric.api.version"].toString()
@@ -47,16 +63,6 @@ class FabricMultiGamePlugin : Plugin<Project> {
                 val modern = VersionNumber.parse(minecraftVersion) >= VersionNumber.parse("1.14")
                 val disableObfuscation =
                     subproject.properties.getOrDefault("fabric.loom.disableObfuscation", false).toString().toBoolean()
-                subproject.plugins.apply("java")
-                subproject.plugins.apply("fabric-loom")
-                if (!modern) {
-                    subproject.plugins.apply("legacy-looming")
-                }
-
-                hasClass("org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension")?.also {
-                    subproject.plugins.apply("org.jetbrains.kotlin.jvm")
-                    KotlinExtension.jvmToolchain(subproject.extensions.getByName("kotlin"), javaVersion.toInt())
-                }
 
                 subproject.dependencies.minecraft("com.mojang:minecraft:$minecraftVersion")
                 if (disableObfuscation) {
@@ -80,7 +86,7 @@ class FabricMultiGamePlugin : Plugin<Project> {
                 }
                 subproject.extensions.getByType(BasePluginExtension::class.java).archivesName.set(project.rootProject.name)
                 subproject.dependencies.implementation(core)
-                subproject.version = "${minecraftVersion}-${project.rootProject.version}"
+
                 subproject.tasks.processResources {
                     from(core.sourceSets.main.get().output)
                     inputs.property("currentTimeMillis", System.currentTimeMillis())
