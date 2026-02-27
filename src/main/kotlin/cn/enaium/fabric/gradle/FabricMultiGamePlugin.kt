@@ -58,7 +58,6 @@ class FabricMultiGamePlugin : Plugin<Project> {
             afterEvaluate.subprojects { subproject ->
                 val minecraftVersion = subproject.properties["minecraft.version"].toString()
                 val loaderVersion = subproject.properties["fabric.loader.version"].toString()
-                val apiVersion = subproject.properties["fabric.api.version"].toString()
                 val javaVersion = subproject.properties["java.version"].toString()
                 val modern = VersionNumber.parse(minecraftVersion) >= VersionNumber.parse("1.14")
                 val disableObfuscation =
@@ -74,10 +73,12 @@ class FabricMultiGamePlugin : Plugin<Project> {
                 subproject.properties.getOrDefault("fabric.yarn.version", null)?.also {
                     subproject.dependencies.mappings("${if (modern) "net.fabricmc:yarn" else "net.legacyfabric:yarn"}:$it:v2")
                 }
-                if (disableObfuscation) {
-                    subproject.dependencies.implementation("${if (modern) "net.fabricmc.fabric-api:fabric-api" else "net.legacyfabric.legacy-fabric-api:legacy-fabric-api"}:$apiVersion")
-                } else {
-                    subproject.dependencies.modImplementation("${if (modern) "net.fabricmc.fabric-api:fabric-api" else "net.legacyfabric.legacy-fabric-api:legacy-fabric-api"}:$apiVersion")
+                subproject.properties.getOrDefault("fabric.api.version", null)?.toString()?.also { api ->
+                    if (disableObfuscation) {
+                        subproject.dependencies.implementation("${if (modern) "net.fabricmc.fabric-api:fabric-api" else "net.legacyfabric.legacy-fabric-api:legacy-fabric-api"}:$api")
+                    } else {
+                        subproject.dependencies.modImplementation("${if (modern) "net.fabricmc.fabric-api:fabric-api" else "net.legacyfabric.legacy-fabric-api:legacy-fabric-api"}:$api")
+                    }
                 }
                 val core = extension.common.get()
                 core.tasks.named("jar", Jar::class.java) {
