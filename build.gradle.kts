@@ -45,19 +45,14 @@ gradlePlugin {
     }
 }
 
-allprojects {
-    apply(plugin = "java")
-    apply(plugin = "maven-publish")
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            groupId = project.group.toString()
+            artifactId = project.name
+            version = project.version.toString()
 
-    publishing {
-        publications {
-            create<MavenPublication>("maven") {
-                groupId = project.group.toString()
-                artifactId = project.name
-                version = project.version.toString()
-
-                from(components["java"])
-            }
+            from(components["java"])
         }
     }
 }

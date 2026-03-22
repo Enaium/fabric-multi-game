@@ -86,7 +86,7 @@ class FabricMultiGamePlugin : Plugin<Project> {
                     it.exclude("*.mixins.json")
                 }
                 subproject.extensions.getByType(BasePluginExtension::class.java).archivesName.set(project.rootProject.name)
-                subproject.dependencies.implementation(core)
+                subproject.dependencies.compileOnly(core)
 
                 subproject.tasks.processResources {
                     from(core.sourceSets.main.get().output)
@@ -102,7 +102,7 @@ class FabricMultiGamePlugin : Plugin<Project> {
                             val pn = mixins["package"].asString()
                             mixins.set("mixins", mapper.createArrayNode().apply {
                                 subproject.file("src/main/java/${pn.replace(".", "/")}").listFiles()
-                                    .forEach { add(it.name.substringBeforeLast(".")) }
+                                    ?.forEach { add(it.name.substringBeforeLast(".")) }
                             })
                             mixins.put(
                                 "compatibilityLevel",

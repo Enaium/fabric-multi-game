@@ -40,6 +40,10 @@ internal fun DependencyHandler.implementation(dependency: Any) {
     add(JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME, dependency)
 }
 
+internal fun DependencyHandler.compileOnly(dependency: Any) {
+    add(JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME, dependency)
+}
+
 internal fun DependencyHandler.minecraft(dependency: Any) {
     add("minecraft", dependency)
 }
