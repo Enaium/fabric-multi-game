@@ -86,7 +86,12 @@ class FabricMultiGamePlugin : Plugin<Project> {
                     it.exclude("*.mixins.json")
                 }
                 subproject.extensions.getByType(BasePluginExtension::class.java).archivesName.set(project.rootProject.name)
-                subproject.dependencies.compileOnly(core)
+                subproject.configurations.create("internal") {
+                    subproject.configurations.runtimeClasspath.get().extendsFrom(it)
+                    subproject.configurations.compileClasspath.get().extendsFrom(it)
+                }
+
+                subproject.dependencies.add("internal", core)
 
                 subproject.tasks.processResources {
                     from(core.sourceSets.main.get().output)

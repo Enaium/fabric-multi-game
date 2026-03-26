@@ -67,3 +67,5 @@ internal val SourceSetContainer.main: NamedDomainObjectProvider<SourceSet>
 
 internal val NamedDomainObjectContainer<Configuration>.runtimeClasspath: NamedDomainObjectProvider<Configuration>
     get() = named("runtimeClasspath", Configuration::class.java)
+internal val NamedDomainObjectContainer<Configuration>.compileClasspath: NamedDomainObjectProvider<Configuration>
+    get() = named("compileClasspath", Configuration::class.java)
