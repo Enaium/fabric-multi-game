@@ -21,12 +21,14 @@ import org.gradle.api.NamedDomainObjectProvider
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.tasks.JvmConstants
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.TaskProvider
+import org.gradle.api.tasks.bundling.Jar
 import org.gradle.language.jvm.tasks.ProcessResources
 
 /**
@@ -40,9 +42,10 @@ internal fun DependencyHandler.implementation(dependency: Any) {
     add(JvmConstants.IMPLEMENTATION_CONFIGURATION_NAME, dependency)
 }
 
-internal fun DependencyHandler.compileOnly(dependency: Any) {
-    add(JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME, dependency)
+internal fun DependencyHandler.api(dependency: Any) {
+    add(JvmConstants.API_CONFIGURATION_NAME, dependency)
 }
+
 
 internal fun DependencyHandler.minecraft(dependency: Any) {
     add("minecraft", dependency)
@@ -59,6 +62,12 @@ internal fun DependencyHandler.mappings(dependency: Any) {
 internal val TaskContainer.processResources: TaskProvider<ProcessResources>
     get() = named("processResources", ProcessResources::class.java)
 
+internal val TaskContainer.jar: TaskProvider<Jar>
+    get() = named("jar", Jar::class.java)
+
+internal val TaskContainer.sourcesJar: TaskProvider<Jar>
+    get() = named("sourcesJar", Jar::class.java)
+
 internal val Project.sourceSets: SourceSetContainer
     get() = (this as ExtensionAware).extensions.getByName("sourceSets") as SourceSetContainer
 
@@ -69,3 +78,13 @@ internal val NamedDomainObjectContainer<Configuration>.runtimeClasspath: NamedDo
     get() = named("runtimeClasspath", Configuration::class.java)
 internal val NamedDomainObjectContainer<Configuration>.compileClasspath: NamedDomainObjectProvider<Configuration>
     get() = named("compileClasspath", Configuration::class.java)
+
+internal val SourceSet.kotlin: SourceDirectorySet
+    get() =
+        (this as ExtensionAware).extensions.getByName("kotlin") as SourceDirectorySet
+
+val NamedDomainObjectContainer<Configuration>.implementation: NamedDomainObjectProvider<Configuration>
+    get() = named("implementation", Configuration::class.java)
+
+val NamedDomainObjectContainer<Configuration>.api: NamedDomainObjectProvider<Configuration>
+    get() = named("api", Configuration::class.java)

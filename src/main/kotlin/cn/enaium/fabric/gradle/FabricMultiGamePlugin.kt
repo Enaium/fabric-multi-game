@@ -93,6 +93,25 @@ class FabricMultiGamePlugin : Plugin<Project> {
 
                 subproject.dependencies.add("internal", core)
 
+                core.configurations.implementation.get().dependencies.forEach { dependency ->
+                    subproject.dependencies.implementation(dependency)
+                }
+
+                core.configurations.api.get().dependencies.forEach { dependency ->
+                    subproject.dependencies.api(dependency)
+                }
+
+                subproject.afterEvaluate { afterEvaluate ->
+                    afterEvaluate.tasks.findByName("sourcesJar")?.let { it as Jar }?.apply {
+                        core.sourceSets.main.orNull?.also { sourceSet ->
+                            from(sourceSet.java)
+                            hasClass("org.jetbrains.kotlin.gradle.dsl.KotlinProjectExtension")?.also {
+                                from(sourceSet.kotlin)
+                            }
+                        }
+                    }
+                }
+
                 subproject.tasks.processResources {
                     from(core.sourceSets.main.get().output)
                     inputs.property("currentTimeMillis", System.currentTimeMillis())
